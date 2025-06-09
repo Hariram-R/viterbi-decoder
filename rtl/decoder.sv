@@ -132,29 +132,27 @@ module decoder
 
 //Add Compare Select Modules (8 copies -- note pattern in connections!!)
 // i = 0, 1, ... 7        j = 0, 3, 4, 7, 1, 2, 5, 6       k = 1, 2, 5, 6, 0, 3, 4, 7  -- these create lattice butterfly connection pattern
-   
-   //TODO: Hookup valid bits
    ACS   ACS0(
       //in
-      .path_0_valid(validity[j]),
-      .path_1_valid(validity[k]),
+      .path_0_valid(validity[0]),
+      .path_1_valid(validity[1]),
       .path_0_bmc(bmc0_path_0_bmc),
       .path_1_bmc(bmc0_path_1_bmc),
-      .path_0_pmc(path_cost[j]),
-      .path_1_pmc(path_cost[k]),
+      .path_0_pmc(path_cost[0]),
+      .path_1_pmc(path_cost[1]),
       //out
       .selection(ACS0_selection),
       .valid_o(ACS0_valid_o),
       .path_cost(ACS0_path_cost)
       );
 
-   ACS   ACS1(validity[j],validity[k],bmc1_path_0_bmc,bmc1_path_1_bmc,path_cost[j],path_cost[k],ACS1_selection,ACS1_valid_o,ACS1_path_cost);
-   ACS   ACS2(validity[j],validity[k],bmc2_path_0_bmc,bmc2_path_1_bmc,path_cost[j],path_cost[k],ACS2_selection,ACS2_valid_o,ACS2_path_cost);
-   ACS   ACS3(validity[j],validity[k],bmc3_path_0_bmc,bmc3_path_1_bmc,path_cost[j],path_cost[k],ACS3_selection,ACS3_valid_o,ACS3_path_cost);
-   ACS   ACS4(validity[j],validity[k],bmc4_path_0_bmc,bmc4_path_1_bmc,path_cost[j],path_cost[k],ACS4_selection,ACS4_valid_o,ACS4_path_cost);
-   ACS   ACS5(validity[j],validity[k],bmc5_path_0_bmc,bmc5_path_1_bmc,path_cost[j],path_cost[k],ACS5_selection,ACS5_valid_o,ACS5_path_cost);
-   ACS   ACS6(validity[j],validity[k],bmc6_path_0_bmc,bmc6_path_1_bmc,path_cost[j],path_cost[k],ACS6_selection,ACS6_valid_o,ACS6_path_cost);
-   ACS   ACS7(validity[j],validity[k],bmc7_path_0_bmc,bmc7_path_1_bmc,path_cost[j],path_cost[k],ACS7_selection,ACS7_valid_o,ACS7_path_cost);
+   ACS   ACS1(validity[3],validity[2],bmc1_path_0_bmc,bmc1_path_1_bmc,path_cost[3],path_cost[2],ACS1_selection,ACS1_valid_o,ACS1_path_cost);
+   ACS   ACS2(validity[4],validity[5],bmc2_path_0_bmc,bmc2_path_1_bmc,path_cost[4],path_cost[5],ACS2_selection,ACS2_valid_o,ACS2_path_cost);
+   ACS   ACS3(validity[7],validity[6],bmc3_path_0_bmc,bmc3_path_1_bmc,path_cost[7],path_cost[6],ACS3_selection,ACS3_valid_o,ACS3_path_cost);
+   ACS   ACS4(validity[1],validity[0],bmc4_path_0_bmc,bmc4_path_1_bmc,path_cost[1],path_cost[0],ACS4_selection,ACS4_valid_o,ACS4_path_cost);
+   ACS   ACS5(validity[2],validity[3],bmc5_path_0_bmc,bmc5_path_1_bmc,path_cost[2],path_cost[3],ACS5_selection,ACS5_valid_o,ACS5_path_cost);
+   ACS   ACS6(validity[5],validity[4],bmc6_path_0_bmc,bmc6_path_1_bmc,path_cost[5],path_cost[4],ACS6_selection,ACS6_valid_o,ACS6_path_cost);
+   ACS   ACS7(validity[6],validity[7],bmc7_path_0_bmc,bmc7_path_1_bmc,path_cost[6],path_cost[7],ACS7_selection,ACS7_valid_o,ACS7_path_cost);
 
    
    selection_nets  = {ACS7_selection,ACS6_selection,ACS5_selection,ACS4_selection,ACS3_selection,ACS2_selection,ACS1_selection,ACS0_selection}; // concatenate ACS7 ,,, ACS0 _selections (use { ,  } format)
@@ -181,7 +179,8 @@ module decoder
             path_cost[i]      <= 8'd0;
          */
       end
-      else if () begin // reduction & of all path_costs' MSBs
+      else if (&{path_cost[7][7], path_cost[6][7], path_cost[5][7], path_cost[4][7],
+               path_cost[3][7], path_cost[2][7], path_cost[1][7], path_cost[0][7]}) begin // reduction & of all path_costs' MSBs
          validity          <= validity_nets;
          selection         <= selection_nets;
          
@@ -212,18 +211,24 @@ module decoder
    always @ (posedge clk, negedge rst) begin	  // wr_mem_counter   commands
    // if rst (active low) or not enabling (active high), force to 0; else, increment by 1
       if(!rst)  begin
-         
+         wr_mem_counter <= 10'd0;
+      end
+      else if(!enable) begin
+         wr_mem_counter <= 10'd0;
       end
       else begin
+         wr_mem_counter <= wr_mem_counter + 1'b1;
       end
    end
 
+   // TODO: complete
    always @ (posedge clk, negedge rst) begin
       if(!rst)
          rd_mem_counter <= // set to max value
       else if(enable)
          rd_mem_counter <= // count down by 1
    end
+
 
    always @ (posedge clk, negedge rst)
       if(!rst)
@@ -234,7 +239,11 @@ module decoder
       end
 
    always @ (posedge clk)    begin
-      d_in_mem_k  <= selection;		  // k = A, B, C, D
+      d_in_mem_A  <= selection;		  // k = A, B, C, D
+      d_in_mem_B  <= selection;		  
+      d_in_mem_C  <= selection;		  
+      d_in_mem_D  <= selection;		  
+
    end
 
 // memory bank management: always write to one, read from two others, keep address at 0 (no writing) for fourth one
