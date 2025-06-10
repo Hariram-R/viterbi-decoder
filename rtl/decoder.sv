@@ -221,22 +221,23 @@ module decoder
       end
    end
 
-   // TODO: complete
    always @ (posedge clk, negedge rst) begin
       if(!rst)
-         rd_mem_counter <= // set to max value
+         rd_mem_counter <= 10'd1023;// set to max value
       else if(enable)
-         rd_mem_counter <= // count down by 1
+         rd_mem_counter <= rd_mem_counter - 1'b1; // count down by 1
    end
 
 
-   always @ (posedge clk, negedge rst)
+   always @ (posedge clk, negedge rst) begin
       if(!rst)
          mem_bank <= 2'b0;
       else begin
-         /*if(wr_mem_counter = -1  fill in the guts*/
+         if(wr_mem_counter == 10'b1111111111) begin  //fill in the guts
                mem_bank <= mem_bank + 2'b1;
+         end
       end
+   end
 
    always @ (posedge clk)    begin
       d_in_mem_A  <= selection;		  // k = A, B, C, D
@@ -251,31 +252,56 @@ module decoder
       case(mem_bank)
          2'b00: begin        	 // write to A, clear C, read from others
             wr_mem_A <= 1'b1;
+            addr_mem_A <= wr_mem_counter;
+
             wr_mem_B <= 1'b0;
+            addr_mem_B <= rd_mem_counter;
+
             wr_mem_C <= 1'b0;
-            wr_mem_D <= 1'b0;
             addr_mem_C <= 10'd0;
+
+            wr_mem_D <= 1'b0;
+            addr_mem_D <= rd_mem_counter;
          end
          2'b01: begin
             wr_mem_A <= 1'b0;
+            addr_mem_A <= rd_mem_counter;
+
             wr_mem_B <= 1'b1; // write to B, clear D, read from others
+            addr_mem_B <= wr_mem_counter;
+
             wr_mem_C <= 1'b0;
+            addr_mem_C <= rd_mem_counter;
+
             wr_mem_D <= 1'b0;
             addr_mem_D <= 10'd0;
          end
          2'b10: begin      		 // write to C, clear A, read from others
             wr_mem_A <= 1'b0;
-            wr_mem_B <= 1'b0;
-            wr_mem_C <= 1'b1;
-            wr_mem_D <= 1'b0;
             addr_mem_A <= 10'd0;
+
+            wr_mem_B <= 1'b0;
+            addr_mem_B <= rd_mem_counter;
+
+            wr_mem_C <= 1'b1;
+            addr_mem_C <= wr_mem_counter;
+
+            wr_mem_D <= 1'b0;
+            addr_mem_D <= rd_mem_counter;
          end
          2'b11: begin              // write to D, clear B, read from others  
             wr_mem_A <= 1'b0;
+            addr_mem_A <= rd_mem_counter;
+
             wr_mem_B <= 1'b0;
-            wr_mem_C <= 1'b0;
-            wr_mem_D <= 1'b1;
             addr_mem_B <= 10'd0;
+                        
+            wr_mem_C <= 1'b0;
+            addr_mem_C <= rd_mem_counter;
+
+            wr_mem_D <= 1'b1;
+            addr_mem_D <= wr_mem_counter;
+            
          end		       
       endcase
   end
@@ -434,32 +460,46 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
    );
 
 // Display memory module operation
-   always @ (posedge clk)
-      mem_bank_Q3 <= mem_bank_Q2[0];
+   always @ (posedge clk) begin
+      if(!rst) begin
+         mem_bank_Q3 <= 1'b0;
+      end
+      else begin
+         mem_bank_Q3 <= mem_bank_Q2[0];
+      end
+   end
 
-   always @ (posedge clk)
+   always @ (posedge clk) begin
       if(!rst)
-         wr_mem_counter_disp  <= min value + 2
+         wr_mem_counter_disp  <= 10'd1023;
       else if(!enable)
-         wr_mem_counter_disp  <= //same
-      else
+         wr_mem_counter_disp  <= 10'd1023;
+      else begin
+         wr_mem_counter_disp <= wr_mem_counter_disp - 1'b1;
+      end
+   end
 //       decrement wr_mem_counter_disp    
 
-   always @ (posedge clk)
+   always @ (posedge clk) begin
       if(!rst)
-         rd_mem_counter_disp  <= //max value - 2
+         rd_mem_counter_disp  <= 10'd0;//max value - 2
       else if(!enable)
-         rd_mem_counter_disp  <= //same
-      else         // increment    rd_mem_counter_disp     
-   
-   always @ (posedge clk)
-      // if !mem_bank_Q3
+         rd_mem_counter_disp  <= 10'd0;//same
+      else begin
+         rd_mem_counter_disp  <= rd_mem_counter_disp + 1'b1;
+      end        // increment    rd_mem_counter_disp     
+   end
+
+   always @ (posedge clk) begin
+       if (!mem_bank_Q3)
          begin
             addr_disp_mem_0   <= rd_mem_counter_disp; 
             addr_disp_mem_1   <= wr_mem_counter_disp;
          end
-     //  else:	 swap rd and wr 
-      endcase
+       else begin // swap rd and wr 
+       end
+      //endcase
+   end
 
    
 /* pipeline mem_bank_Q3 to Q4 to Q5
