@@ -118,7 +118,7 @@ module decoder
    logic   [9:0]       addr_disp_mem_0;
    logic   [9:0]       addr_disp_mem_1;
 
-//Branch matrc calculation modules	(8 total)
+//Branch metric calculation modules	(8 total)
    bmc0   bmc0_inst(d_in,bmc0_path_0_bmc,bmc0_path_1_bmc);
    bmc1   bmc1_inst(d_in,bmc1_path_0_bmc,bmc1_path_1_bmc);
    bmc2   bmc2_inst(d_in,bmc2_path_0_bmc,bmc2_path_1_bmc);
@@ -247,12 +247,35 @@ module decoder
    end
 
 // memory bank management: always write to one, read from two others, keep address at 0 (no writing) for fourth one
-   always @ (posedge clk)     	  // in each case, the memory bank w/ the wr_mem_counter needs a write enable; all others = 0
+   always @ (posedge clk)   begin  	  // in each case, the memory bank w/ the wr_mem_counter needs a write enable; all others = 0
       case(mem_bank)
-         2'b00:         	 // write to A, clear C, read from others
-         2'b01:         	 // write to B, clear D, read from others
-         2'b10:       		 // write to C, clear A, read from others
-         2'b11:              // write to D, clear B, read from others  
+         2'b00: begin        	 // write to A, clear C, read from others
+            wr_mem_A <= 1'b1;
+            wr_mem_B <= 1'b0;
+            wr_mem_C <= 1'b0;
+            wr_mem_D <= 1'b0;
+            addr_mem_C <= 10'd0;
+         end
+         2'b01: begin
+            wr_mem_A <= 1'b0;
+            wr_mem_B <= 1'b1; // write to B, clear D, read from others
+            wr_mem_C <= 1'b0;
+            wr_mem_D <= 1'b0;
+            addr_mem_D <= 10'd0;
+         end
+         2'b10: begin      		 // write to C, clear A, read from others
+            wr_mem_A <= 1'b0;
+            wr_mem_B <= 1'b0;
+            wr_mem_C <= 1'b1;
+            wr_mem_D <= 1'b0;
+            addr_mem_A <= 10'd0;
+         end
+         2'b11: begin              // write to D, clear B, read from others  
+            wr_mem_A <= 1'b0;
+            wr_mem_B <= 1'b0;
+            wr_mem_C <= 1'b0;
+            wr_mem_D <= 1'b1;
+            addr_mem_B <= 10'd0;
          end		       
       endcase
   end
@@ -294,8 +317,17 @@ module decoder
 
 //Trace back module operation
 
-   always @(posedge clk)
+   always @(posedge clk) begin
 /* create mem_bank, mem_bank_Q1, mem_bank_Q2 pipeline */
+      if(!rst) begin
+         mem_bank_Q <= 2'b00;
+         mem_bank_Q2 <= 2'b00;
+      end
+      else begin
+         mem_bank_Q <= mem_bank;
+         mem_bank_Q2 <= mem_bank_Q;
+      end
+   end
 
    always @ (posedge clk, negedge rst)
       if(!rst)
@@ -357,8 +389,8 @@ module decoder
 //Trace-Back modules instantiation
 
    tbu tbu_0   (
-      .clk,
-      .rst,
+      .clk(clk),
+      .rst(rst),
       .enable(enable_tbu_0),
       .selection(selection_tbu_0),
       .d_in_0(d_in_0_tbu_0),
@@ -369,12 +401,23 @@ module decoder
 
 /* analogous for tbu_1
 */
+   tbu tbu_1   (
+      .clk(clk),
+      .rst(rst),
+      .enable(enable_tbu_1),
+      .selection(selection_tbu_1),
+      .d_in_0(d_in_0_tbu_1),
+      .d_in_1(d_in_1_tbu_1),
+      .d_o(d_o_tbu_1),
+      .wr_en(wr_disp_mem_1)
+   );
 
 //Display Memory modules Instantioation
-//   d_in_disp_mem_K   =  d_o_tbu_K;  K=0,1
+assign   d_in_disp_mem_0   =  d_o_tbu_0;  // K=0,1
+assign   d_in_disp_mem_1   =  d_o_tbu_1;
 
   mem_disp   disp_mem_0	  (
-      .clk              ,
+      .clk(clk),
       .wr(wr_disp_mem_0),
       .addr(addr_disp_mem_0),
       .d_i(d_in_disp_mem_0),
@@ -382,6 +425,13 @@ module decoder
    );
 /* analogous for disp_mem_1
 */
+   mem_disp   disp_mem_1  (
+      .clk(clk),
+      .wr(wr_disp_mem_1),
+      .addr(addr_disp_mem_1),
+      .d_i(d_in_disp_mem_1),
+      .d_o(d_o_disp_mem_1)
+   );
 
 // Display memory module operation
    always @ (posedge clk)
@@ -411,10 +461,20 @@ module decoder
      //  else:	 swap rd and wr 
       endcase
 
-   always @ (posedge clk) 	 
+   
 /* pipeline mem_bank_Q3 to Q4 to Q5
  also  d_out = d_o_disp_mem_i 
     i = mem_bank_Q5 
 */
+   always @ (posedge clk) 	 begin
+      if(!rst) begin
+         mem_bank_Q4 <= 1'b0;
+         mem_bank_Q5 <= 1'b0;
+      end
+      else begin
+         mem_bank_Q4 <= mem_bank_Q3;
+         mem_bank_Q5 <= mem_bank_Q4;
+      end
+   end
 
 endmodule
