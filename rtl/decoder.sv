@@ -25,12 +25,12 @@ module decoder
    wire  [1:0]       bmc7_path_1_bmc;
 
 
-//ACS modules signals
-   logic   [7:0]       validity;
-   logic   [7:0]       selection;
-   logic   [7:0]       path_cost   [8];
-   wire    [7:0]       validity_nets;
-   wire    [7:0]       selection_nets;
+//ACS modules signals (8 of these)
+   logic   [7:0]       validity;		//inputs getting flopped from validity_nets, coming from ACSK_valid_o outputs
+   logic   [7:0]       selection;		//inputs getting flopped from selection_nets, coming from ACSK_selection outputs
+   logic   [7:0]       path_cost   [8];	//inputs getting flopped from ACSK_path_costs outputs, with MSB removed for overflow
+   wire    [7:0]       validity_nets;	//outputs getting concatenated from ACSK_valid_o outputs
+   wire    [7:0]       selection_nets;	//outputs getting concatenated from ACSK_selection outputs
 
    wire              ACS0_selection;  // K=0,1,...7		 (i.e., 8 of these)
    wire              ACS1_selection;
@@ -165,9 +165,6 @@ module decoder
          for(int i=0;i<8;i++) begin
             path_cost[i]      <= 8'd0;
          end      
-         /* clear all 8 path costs
-            path_cost[i]      <= 8'd0;
-         */
       end
       else if(!enable)   begin
          validity          <= 8'b1;
@@ -175,9 +172,6 @@ module decoder
          for(int i=0;i<8;i++) begin
             path_cost[i]      <= 8'd0;
          end 
-         /* clear all 8 path costs
-            path_cost[i]      <= 8'd0;
-         */
       end
       else if (&{path_cost[7][7], path_cost[6][7], path_cost[5][7], path_cost[4][7],
                path_cost[3][7], path_cost[2][7], path_cost[1][7], path_cost[0][7]}) begin // reduction & of all path_costs' MSBs
@@ -461,7 +455,7 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
 
 // Display memory module operation
    always @ (posedge clk) begin
-      if(!rst) begin
+      if(!rst) begin//TODO: to reset or not to reset
          mem_bank_Q3 <= 1'b0;
       end
       else begin
@@ -471,9 +465,9 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
 
    always @ (posedge clk) begin
       if(!rst)
-         wr_mem_counter_disp  <= 10'd1023;
+         wr_mem_counter_disp  <= 10'd1023;//TODO: min value + 2
       else if(!enable)
-         wr_mem_counter_disp  <= 10'd1023;
+         wr_mem_counter_disp  <= 10'd1023;//TODO: same
       else begin
          wr_mem_counter_disp <= wr_mem_counter_disp - 1'b1;
       end
@@ -482,12 +476,12 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
 
    always @ (posedge clk) begin
       if(!rst)
-         rd_mem_counter_disp  <= 10'd0;//max value - 2
+         rd_mem_counter_disp  <= 10'd0;//TODO:max value - 2
       else if(!enable)
-         rd_mem_counter_disp  <= 10'd0;//same
-      else begin
+         rd_mem_counter_disp  <= 10'd0;//TODO:same
+      else begin        // increment    rd_mem_counter_disp  
          rd_mem_counter_disp  <= rd_mem_counter_disp + 1'b1;
-      end        // increment    rd_mem_counter_disp     
+      end   
    end
 
    always @ (posedge clk) begin
@@ -496,7 +490,8 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
             addr_disp_mem_0   <= rd_mem_counter_disp; 
             addr_disp_mem_1   <= wr_mem_counter_disp;
          end
-       else begin // swap rd and wr 
+       else begin // swap rd and wr
+		//TODO: 
        end
       //endcase
    end
