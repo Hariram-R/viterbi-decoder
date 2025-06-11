@@ -2,7 +2,7 @@
 of these, but unlike ACS, not all are identical.
 */
 
-module bmc				  // branch metric computation
+module bmc6				  // branch metric computation
 (
 	input    [1:0] rx_pair,
 	output   [1:0] path_0_bmc,

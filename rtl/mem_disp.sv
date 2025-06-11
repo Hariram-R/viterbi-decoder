@@ -1,6 +1,6 @@
 /*make the data path K bits wide for mem_Kx1024
    K=8 for module mem, K=1 for module mem_disp */ 
-module mem					(
+module mem_disp					(
    input                  clk,
    input                  wr,	 // write enable
    input         [9:0]    addr,

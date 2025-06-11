@@ -42,10 +42,11 @@ module viterbi_tx_rx #(parameter N=4) (
 // word_ct[N-1:0] generates strings of 2**N consecutive errors
          word_ct              <= word_ct + 1;	err_trig = $random;		
          if((word_ct<256) &&(word_ct[N-1:0]=='1)) begin	 // err_trig[N-1:0]
-            error_counter   <= error_counter + 1;
+            //error_counter   <= error_counter + 1;
 //  N controls average rate of error injection
-		    err_inj        <= 2'b01;
-            encoder_o_reg  <= encoder_o^err_inj;	 // inject bad bits 
+		   //  err_inj        <= 2'b01;
+            //encoder_o_reg  <= encoder_o^err_inj;	 // inject bad bits 
+            encoder_o_reg  <= encoder_o;
          end
          else begin       		   // clean version
             err_inj        <= 2'b00;
@@ -63,8 +64,8 @@ module viterbi_tx_rx #(parameter N=4) (
 // insert your convolutional encoder here
 // change port names and module name as necessary/desired
    encoder encoder1	     (
-      .clk,
-      .rst,
+      .clk(clk),
+      .rst(rst),
       .enable_i(enable_encoder_i), //_reg),
       .d_in    (encoder_i),        //_reg),
       .valid_o (valid_encoder_o),
@@ -72,8 +73,8 @@ module viterbi_tx_rx #(parameter N=4) (
 
 // insert your term project code here 
    decoder decoder1	     (
-      .clk,
-      .rst,
+      .clk(clk),
+      .rst(rst),
       .enable (enable_decoder_in),
       .d_in   (encoder_o_reg),
       .d_out  (decoder_o)   );

@@ -18,9 +18,11 @@ module viterbi_tx_rx_tb();
       .enable_encoder_i,
       .decoder_o    );		// decoded data
 
-   always begin
+   initial begin
+      forever begin
       #50ns  clk   = 'b1;
       #50ns  clk   = 'b0;
+      end
    end
    int i, j, k, l;
 

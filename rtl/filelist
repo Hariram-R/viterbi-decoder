@@ -13,3 +13,4 @@
 ./mem_disp.sv
 ./tbu.sv
 ./viterbi_tx_rx_2a1.sv
+./viterbi_tx_rx_tb.sv

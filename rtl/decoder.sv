@@ -118,6 +118,9 @@ module decoder
    logic   [9:0]       addr_disp_mem_0;
    logic   [9:0]       addr_disp_mem_1;
 
+   logic d_o_disp_mem_0;
+   logic d_o_disp_mem_1;
+
 //Branch metric calculation modules	(8 total)
    bmc0   bmc0_inst(d_in,bmc0_path_0_bmc,bmc0_path_1_bmc);
    bmc1   bmc1_inst(d_in,bmc1_path_0_bmc,bmc1_path_1_bmc);
@@ -155,8 +158,8 @@ module decoder
    ACS   ACS7(validity[6],validity[7],bmc7_path_0_bmc,bmc7_path_1_bmc,path_cost[6],path_cost[7],ACS7_selection,ACS7_valid_o,ACS7_path_cost);
 
    
-   selection_nets  = {ACS7_selection,ACS6_selection,ACS5_selection,ACS4_selection,ACS3_selection,ACS2_selection,ACS1_selection,ACS0_selection}; // concatenate ACS7 ,,, ACS0 _selections (use { ,  } format)
-   validity_nets   = {ACS7_valid_o,ACS6_valid_o,ACS5_valid_o,ACS4_valid_o,ACS3_valid_o,ACS2_valid_o,ACS1_valid_o,ACS0_valid_o};                 // same for ACSK_valid_os 
+   assign selection_nets  = {ACS7_selection,ACS6_selection,ACS5_selection,ACS4_selection,ACS3_selection,ACS2_selection,ACS1_selection,ACS0_selection}; // concatenate ACS7 ,,, ACS0 _selections (use { ,  } format)
+   assign validity_nets   = {ACS7_valid_o,ACS6_valid_o,ACS5_valid_o,ACS4_valid_o,ACS3_valid_o,ACS2_valid_o,ACS1_valid_o,ACS0_valid_o};                 // same for ACSK_valid_os 
 
    always @ (posedge clk, negedge rst) begin
       if(!rst)  begin
@@ -202,6 +205,14 @@ module decoder
       end
    end
 
+   always @ (posedge clk)    begin
+      d_in_mem_A  <= selection;		  // k = A, B, C, D
+      d_in_mem_B  <= selection;		  
+      d_in_mem_C  <= selection;		  
+      d_in_mem_D  <= selection;		  
+
+   end
+
    always @ (posedge clk, negedge rst) begin	  // wr_mem_counter   commands
    // if rst (active low) or not enabling (active high), force to 0; else, increment by 1
       if(!rst)  begin
@@ -231,14 +242,6 @@ module decoder
                mem_bank <= mem_bank + 2'b1;
          end
       end
-   end
-
-   always @ (posedge clk)    begin
-      d_in_mem_A  <= selection;		  // k = A, B, C, D
-      d_in_mem_B  <= selection;		  
-      d_in_mem_C  <= selection;		  
-      d_in_mem_D  <= selection;		  
-
    end
 
 // memory bank management: always write to one, read from two others, keep address at 0 (no writing) for fourth one
@@ -465,9 +468,9 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
 
    always @ (posedge clk) begin
       if(!rst)
-         wr_mem_counter_disp  <= 10'd1023;//TODO: min value + 2
+         wr_mem_counter_disp  <= 10'd2;//TODO: min value + 2
       else if(!enable)
-         wr_mem_counter_disp  <= 10'd1023;//TODO: same
+         wr_mem_counter_disp  <= 10'd2;//TODO: same
       else begin
          wr_mem_counter_disp <= wr_mem_counter_disp - 1'b1;
       end
@@ -476,9 +479,9 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
 
    always @ (posedge clk) begin
       if(!rst)
-         rd_mem_counter_disp  <= 10'd0;//TODO:max value - 2
+         rd_mem_counter_disp  <= 10'd1021;//TODO:max value - 2
       else if(!enable)
-         rd_mem_counter_disp  <= 10'd0;//TODO:same
+         rd_mem_counter_disp  <= 10'd1021;//TODO:same
       else begin        // increment    rd_mem_counter_disp  
          rd_mem_counter_disp  <= rd_mem_counter_disp + 1'b1;
       end   
@@ -492,15 +495,12 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
          end
        else begin // swap rd and wr
 		//TODO: 
+         addr_disp_mem_1   <= rd_mem_counter_disp; 
+         addr_disp_mem_0   <= wr_mem_counter_disp;
        end
       //endcase
    end
 
-   
-/* pipeline mem_bank_Q3 to Q4 to Q5
- also  d_out = d_o_disp_mem_i 
-    i = mem_bank_Q5 
-*/
    always @ (posedge clk) 	 begin
       if(!rst) begin
          mem_bank_Q4 <= 1'b0;
@@ -509,7 +509,14 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
       else begin
          mem_bank_Q4 <= mem_bank_Q3;
          mem_bank_Q5 <= mem_bank_Q4;
+
+         d_out <= (!mem_bank_Q5) ? d_o_disp_mem_0 : d_o_disp_mem_1;
       end
    end
-
+ 
+/* pipeline mem_bank_Q3 to Q4 to Q5
+ also  d_out = d_o_disp_mem_i 
+    i = mem_bank_Q5 
+*/
+   //assign d_out = (!mem_bank_Q5) ? d_o_disp_mem_0 : d_o_disp_mem_1;
 endmodule
