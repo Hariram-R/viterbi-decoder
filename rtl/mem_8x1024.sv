@@ -13,9 +13,9 @@ module mem					(
       if(wr) begin
          mem[addr] <= d_i;
       end
-      else begin
-         d_o <= mem[addr];
-      end
+      //else begin
+      d_o <= mem[addr];
+      //end
    end
 /*
    write synchronously to memory core if enabled

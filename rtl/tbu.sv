@@ -27,40 +27,78 @@ See assignment text for details
 	assign d_o_reg = selection ? d_in_1[pstate] : 0;
 	
 	always_comb begin
-		case(pstate)
-			3'b000: begin
-				//hemlo deer
-				nstate = d_in_1[pstate] ? 1 : 0;
-			end
-			3'b001: begin
-				//hemlo deer
-				nstate = d_in_1[pstate] ? 2 : 3;
-			end
-			3'b010: begin
-				//hemlo deer
-				nstate = d_in_1[pstate] ? 5 : 4;
-			end
-			3'b011: begin
-				//hemlo deer
-				nstate = d_in_1[pstate] ? 6 : 7;
-			end
-			3'b100: begin
-				//hemlo deer
-				nstate = d_in_1[pstate] ? 0 : 1;
-			end
-			3'b101: begin
-				//hemlo deer
-				nstate = d_in_1[pstate] ? 3 : 2;
-			end
-			3'b110: begin
-				//hemlo deer
-				nstate = d_in_1[pstate] ? 4 : 5;
-			end
-			3'b111: begin
-				//hemlo deer
-				nstate = d_in_1[pstate] ? 7 : 6;
-			end
-		endcase
+		if (!selection) begin
+			case(pstate)
+				3'b000: begin
+					//hemlo deer
+					nstate = d_in_0[pstate] ? 1 : 0;
+				end
+				3'b001: begin
+					//hemlo deer
+					nstate = d_in_0[pstate] ? 2 : 3;
+				end
+				3'b010: begin
+					//hemlo deer
+					nstate = d_in_0[pstate] ? 5 : 4;
+				end
+				3'b011: begin
+					//hemlo deer
+					nstate = d_in_0[pstate] ? 6 : 7;
+				end
+				3'b100: begin
+					//hemlo deer
+					nstate = d_in_0[pstate] ? 0 : 1;
+				end
+				3'b101: begin
+					//hemlo deer
+					nstate = d_in_0[pstate] ? 3 : 2;
+				end
+				3'b110: begin
+					//hemlo deer
+					nstate = d_in_0[pstate] ? 4 : 5;
+				end
+				3'b111: begin
+					//hemlo deer
+					nstate = d_in_0[pstate] ? 7 : 6;
+				end
+			endcase
+		end
+		else begin
+			case(pstate)
+				3'b000: begin
+					//hemlo deer
+					nstate = d_in_1[pstate] ? 1 : 0;
+				end
+				3'b001: begin
+					//hemlo deer
+					nstate = d_in_1[pstate] ? 2 : 3;
+				end
+				3'b010: begin
+					//hemlo deer
+					nstate = d_in_1[pstate] ? 5 : 4;
+				end
+				3'b011: begin
+					//hemlo deer
+					nstate = d_in_1[pstate] ? 6 : 7;
+				end
+				3'b100: begin
+					//hemlo deer
+					nstate = d_in_1[pstate] ? 0 : 1;
+				end
+				3'b101: begin
+					//hemlo deer
+					nstate = d_in_1[pstate] ? 3 : 2;
+				end
+				3'b110: begin
+					//hemlo deer
+					nstate = d_in_1[pstate] ? 4 : 5;
+				end
+				3'b111: begin
+					//hemlo deer
+					nstate = d_in_1[pstate] ? 7 : 6;
+				end
+			endcase
+		end
 	end
 
 
