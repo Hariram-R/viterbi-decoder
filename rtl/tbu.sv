@@ -97,7 +97,8 @@ See assignment text for details
     //exception:  rst = enable = selection_buf = 1, but selection = 0, then go to n_state
 		if (!rst) pstate <= 3'b000;
 		else begin
-			if (enable && selection_buf && !selection) pstate <= nstate;
+			//FIXME: This condition seems dodgy
+			if (enable && !selection_buf && selection) pstate <= nstate;
 			else pstate <= 3'b000;
 		end
 	end
