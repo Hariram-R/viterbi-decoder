@@ -342,14 +342,8 @@ module decoder
 
    always @(posedge clk) begin
 /* create mem_bank, mem_bank_Q1, mem_bank_Q2 pipeline */
-      // if(!rst) begin
-      //    mem_bank_Q <= 2'b00;
-      //    mem_bank_Q2 <= 2'b00;
-      // end
-      // else begin
-         mem_bank_Q <= mem_bank;
-         mem_bank_Q2 <= mem_bank_Q;
-      // end
+      mem_bank_Q <= mem_bank;
+      mem_bank_Q2 <= mem_bank_Q;
    end
 
    always @ (posedge clk, negedge rst)
@@ -458,12 +452,7 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
 
 // Display memory module operation
    always @ (posedge clk) begin
-      /*if(!rst) begin//TODO: to reset or not to reset
-         mem_bank_Q3 <= 1'b0;
-      end*/
-      //else begin
       mem_bank_Q3 <= mem_bank_Q2[0];
-      //end
    end
 
    always @ (posedge clk) begin
@@ -502,21 +491,14 @@ assign   d_in_disp_mem_1   =  d_o_tbu_1;
    end
 
    always @ (posedge clk) 	 begin
-      // if(!rst) begin
-      //    mem_bank_Q4 <= 1'b0;
-      //    mem_bank_Q5 <= 1'b0;
-      // end
-      // else begin
          mem_bank_Q4 <= mem_bank_Q3;
          mem_bank_Q5 <= mem_bank_Q4;
 
          d_out <= (!mem_bank_Q5) ? d_o_disp_mem_0 : d_o_disp_mem_1;
-      // end
    end
  
 /* pipeline mem_bank_Q3 to Q4 to Q5
  also  d_out = d_o_disp_mem_i 
     i = mem_bank_Q5 
 */
-   //assign d_out = (!mem_bank_Q5) ? d_o_disp_mem_0 : d_o_disp_mem_1;
 endmodule

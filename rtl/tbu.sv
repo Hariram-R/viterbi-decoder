@@ -34,12 +34,12 @@ See assignment text for details
     //exception:  rst = enable = selection_buf = 1, but selection = 0, then go to n_state
 		if (!rst) pstate <= 3'b000;
 		else begin
-        else if (!enable)
-            pstate  <= 3'b000;
-        else if (selection_buf & !selection)
-            pstate  <= 3'b000;
-        else
-            pstate  <= nstate;
+			if (!enable)
+				pstate  <= 3'b000;
+			else if (selection_buf & !selection)
+				pstate  <= 3'b000;
+			else
+				pstate  <=  nstate;
 /*
 			//FIXME: This condition seems dodgy
 			if (enable && selection_buf && !selection) pstate <= nstate;
