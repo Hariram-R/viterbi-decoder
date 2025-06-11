@@ -23,6 +23,31 @@ from selection, d_in_1[pstate], d_in_0[pstate]
 See assignment text for details
 */
 
+	always @(posedge clk)    begin
+		selection_buf  <= selection;
+		wr_en          <= wr_en_reg;
+		d_o            <= d_o_reg;
+	end
+
+	always @(posedge clk, negedge rst) begin
+    //reset p state to 0
+    //exception:  rst = enable = selection_buf = 1, but selection = 0, then go to n_state
+		if (!rst) pstate <= 3'b000;
+		else begin
+        else if (!enable)
+            pstate  <= 3'b000;
+        else if (selection_buf & !selection)
+            pstate  <= 3'b000;
+        else
+            pstate  <= nstate;
+/*
+			//FIXME: This condition seems dodgy
+			if (enable && selection_buf && !selection) pstate <= nstate;
+			else pstate <= 3'b000;
+*/
+		end
+	end
+
 	assign wr_en_reg = selection;
 	assign d_o_reg = selection ? d_in_1[pstate] : 0;
 	
@@ -55,7 +80,7 @@ See assignment text for details
 				end
 			endcase
 		end
-		else begin
+		else if (selection) begin
 			case(pstate)
 				3'b000: begin
 					nstate = d_in_1[pstate] ? 3'd1 : 3'd0;
@@ -83,25 +108,7 @@ See assignment text for details
 				end
 			endcase
 		end
+		else nstate = pstate;
 	end
-
-
-	always @(posedge clk)    begin
-		selection_buf  <= selection;
-		wr_en          <= wr_en_reg;
-		d_o            <= d_o_reg;
-	end
-
-	always @(posedge clk, negedge rst) begin
-    //reset p state to 0
-    //exception:  rst = enable = selection_buf = 1, but selection = 0, then go to n_state
-		if (!rst) pstate <= 3'b000;
-		else begin
-			//FIXME: This condition seems dodgy
-			if (enable && !selection_buf && selection) pstate <= nstate;
-			else pstate <= 3'b000;
-		end
-	end
-
 
 endmodule
