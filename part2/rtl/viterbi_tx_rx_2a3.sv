@@ -14,7 +14,7 @@ module viterbi_tx_rx #(parameter N=4) (
 
    int           error_counter,	err_trig,
                  bad_bit_ct,
-                 word_ct, err_set;
+                 word_ct;
    logic   [1:0] encoder_o_reg0,
                  encoder_o_reg;
    logic         encoder_i_reg;
@@ -32,7 +32,6 @@ module viterbi_tx_rx #(parameter N=4) (
          enable_decoder_in    <= 'b0;
 		   enable_encoder_i_reg <= 'b0;
 		   word_ct              <= 'b0;
-         err_set              <= 'b0;
       end
       else begin 
          enable_encoder_i_reg <= enable_encoder_i;  
@@ -41,21 +40,11 @@ module viterbi_tx_rx #(parameter N=4) (
          encoder_i_reg     <= encoder_i;
          encoder_o_reg0    <= encoder_o;
          // word_ct[N-1:0] generates strings of 2**N consecutive errors
-         word_ct              <= word_ct + 1;
-         if(err_set==1'b0 && word_ct[4:0]=='0) begin	
-            //err_trig =  error_counter*8+($random % (7 + 1));
-            err_trig =  ($random % (30 + 1));
-            err_set = 1'b1;
-         end
-         //if(err_trig)
-
-         if((word_ct<256) &&((word_ct[4:0]==err_trig[4:0]) || (word_ct[4:0]== (err_trig[4:0] + 5'b0001)) )) begin	 // err_trig[N-1:0]
+         word_ct              <= word_ct + 1;	err_trig = $random;		
+         if((word_ct<256) &&(word_ct[3:0]=='1)) begin	 // err_trig[N-1:0]
             error_counter   <= error_counter + 2;
             //  N controls average rate of error injection
-            err_set <= 1'b0;
-            //if(err_set!=2'b2) begin
-            err_inj        <= 2'b11;
-            //end
+		      err_inj        <= 2'b11;
             encoder_o_reg  <= encoder_o^err_inj;	 // inject bad bits 
             //encoder_o_reg  <= encoder_o;
          end

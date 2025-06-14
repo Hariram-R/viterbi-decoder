@@ -44,17 +44,17 @@ module viterbi_tx_rx #(parameter N=4) (
          word_ct              <= word_ct + 1;
          if(err_set==1'b0 && word_ct[4:0]=='0) begin	
             //err_trig =  error_counter*8+($random % (7 + 1));
-            err_trig =  ($random % (30 + 1));
+            err_trig =  ($random % (28 + 1));
             err_set = 1'b1;
          end
          //if(err_trig)
 
-         if((word_ct<256) &&((word_ct[4:0]==err_trig[4:0]) || (word_ct[4:0]== (err_trig[4:0] + 5'b0001)) )) begin	 // err_trig[N-1:0]
-            error_counter   <= error_counter + 2;
+         if((word_ct<256) &&((word_ct[4:0]==err_trig[4:0]) || (word_ct[4:0]== (err_trig[4:0] + 5'b0001)) || (word_ct[4:0]== (err_trig[4:0] + 5'b0010)) ||  (word_ct[4:0]== (err_trig[4:0] + 5'b0011)) )) begin	 // err_trig[N-1:0]
+            error_counter   <= error_counter + 1;
             //  N controls average rate of error injection
             err_set <= 1'b0;
             //if(err_set!=2'b2) begin
-            err_inj        <= 2'b11;
+            err_inj        <= 2'b10;
             //end
             encoder_o_reg  <= encoder_o^err_inj;	 // inject bad bits 
             //encoder_o_reg  <= encoder_o;
